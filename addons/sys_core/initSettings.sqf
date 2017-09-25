@@ -38,6 +38,29 @@
     {["disableUnmuteClients", _this] call FUNC(setPluginSetting)}
 ] call CBA_Settings_fnc_init;
 
+// Teamspeak Channel Switching
+// Switch channels
+[
+    QGVAR(ts3ChannelSwitch),
+    "CHECKBOX",
+    localize LSTRING(ts3ChannelSwitch_displayName),
+    "ACRE2",
+    true,
+    false,
+    {["disableTS3ChannelSwitch", _this] call FUNC(setPluginSetting)}
+] call CBA_Settings_fnc_init;
+
+// Channel Name
+[
+    QGVAR(ts3ChannelName),
+    "EDITBOX",
+    localize LSTRING(ts3ChannelName_displayName),
+    "ACRE2",
+    "",
+    false,
+    {call EFUNC(sys_io,ts3ChannelMove)}
+] call CBA_Settings_fnc_init;
+
 // Difficulty settings
 // Interference
 [
@@ -78,7 +101,7 @@
     "SLIDER",
     localize LSTRING(terrainLoss_displayName),
     "ACRE2",
-    [0, 1, 1, 2],
+    [0, 1, 0.50, 2],
     true,
     {[_this, true] call EFUNC(api,setLossModelScale)} // @todo remove second parameter in 2.7.0
 ] call CBA_Settings_fnc_init;
@@ -93,7 +116,6 @@
     true,
     {[_this, true] call EFUNC(api,setRevealToAI)} // @todo remove second parameter in 2.7.0
 ] call CBA_Settings_fnc_init;
-
 
 // @todo remove in 2.7.0
 // Module settings

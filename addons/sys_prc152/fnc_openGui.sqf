@@ -17,18 +17,23 @@
 #include "script_component.hpp"
 
 TRACE_1("OPENING GUI", _this);
+params ["_radioId", "", "", "", ""];
+
+// Prevent radio from being opened if it is externally used or it is not accessible
+if (!([_radioId] call EFUNC(sys_radio,canOpenRadio))) exitWith { false };
 
 disableSerialization;
 
-GVAR(currentRadioId) = _this select 0;
+GVAR(currentRadioId) = _radioId;
 createDialog "PRC152_RadioDialog";
+[_radioId, "setState", ["isGuiOpened", true]] call EFUNC(sys_data,dataEvent);
 
-_onState = [GVAR(currentRadioId), "getOnOffState"] call EFUNC(sys_data,dataEvent);
+private _onState = [GVAR(currentRadioId), "getOnOffState"] call EFUNC(sys_data,dataEvent);
 
 TRACE_2("Opening 152", GVAR(currentRadioId), _onState);
 
 if (_onState >= 1) then {
-    _currentMenu = GET_STATE_DEF("currentMenu", GVAR(VULOSHOME));
+    private _currentMenu = GET_STATE_DEF("currentMenu", GVAR(VULOSHOME));
     [_currentMenu] call FUNC(changeMenu);
 } else {
     //[GVAR(LOADING)] call FUNC(changeMenu);

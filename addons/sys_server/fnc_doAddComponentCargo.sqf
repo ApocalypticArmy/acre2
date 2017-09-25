@@ -16,7 +16,7 @@
  */
 #include "script_component.hpp"
 
-params["_container","_type","_preset","_player","_callBack","_failCallback"];
+params ["_container","_type","_preset","_player","_callBack","_failCallback"];
 
 diag_log text format ["this: %1", _this];
 private _hasUnique = _type call EFUNC(sys_radio,isBaseClassRadio);
@@ -37,7 +37,7 @@ if (_hasUnique) then {
              if (_callBack != "") then {
                  [_callBack, [_uniqueComponent]+_this] call CALLSTACK(CBA_fnc_globalEvent);
              };
-             _fnc = {
+             private _fnc = {
                  private _uniqueComponent = _this;
                  GVAR(unacknowledgedIds) = GVAR(unacknowledgedIds) - [_uniqueComponent];
                  HASH_REM(GVAR(unacknowledgedTable),_uniqueComponent);

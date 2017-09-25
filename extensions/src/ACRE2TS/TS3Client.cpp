@@ -1,4 +1,4 @@
-#include "compat.h"
+﻿#include "compat.h"
 
 #include "TS3Client.h"
 #include "Engine.h"
@@ -8,18 +8,25 @@
 #include "Shlwapi.h"
 #include "Log.h"
 #include <thread>
+#include <exception>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <numeric>
 
 #include "AcreSettings.h"
 
 #pragma comment(lib, "Shlwapi.lib")
 
+#define INVALID_TS3_CHANNEL -1
+#define DEFAULT_TS3_CHANNEL "ACRE"
 
 extern TS3Functions ts3Functions;
 
 //TS3Functions CTS3Client::ts3Functions;
 
 ACRE_RESULT CTS3Client::initialize(void) {
-
+    setPreviousTSChannel(INVALID_TS3_CHANNEL);
     return ACRE_OK;
 }
 
@@ -420,4 +427,138 @@ ACRE_RESULT CTS3Client::unMuteAll( void ) {
     //    Sleep(500);
     //}
     return ACRE_OK;
+}
+
+ACRE_RESULT CTS3Client::moveToServerTS3Channel() {
+    if (!CAcreSettings::getInstance()->getDisableTS3ChannelSwitch()) {
+        anyID clientId;
+        std::vector<std::string> names = getTs3ChannelNames();
+
+        if (ts3Functions.getClientID(ts3Functions.getCurrentServerConnectionHandlerID(), &clientId) == ERROR_ok) {
+            uint64 channelId = INVALID_TS3_CHANNEL;
+            uint64 currentChannelId = INVALID_TS3_CHANNEL;
+            if (ts3Functions.getChannelOfClient(ts3Functions.getCurrentServerConnectionHandlerID(), clientId, &currentChannelId) == ERROR_ok && getPreviousTSChannel() == INVALID_TS3_CHANNEL) {
+                setPreviousTSChannel(currentChannelId);
+            }
+
+            channelId = findChannelByNames(names);
+            if (channelId != INVALID_TS3_CHANNEL && channelId != currentChannelId) {
+                ts3Functions.requestClientMove(ts3Functions.getCurrentServerConnectionHandlerID(), clientId, channelId, "", NULL);
+            }
+        }
+    }
+    setShouldSwitchTS3Channel(false);
+    return ACRE_OK;
+}
+
+ACRE_RESULT CTS3Client::moveToPreviousTS3Channel() {
+    if (!CAcreSettings::getInstance()->getDisableTS3ChannelSwitch()) {
+        anyID clientId;
+        if (ts3Functions.getClientID(ts3Functions.getCurrentServerConnectionHandlerID(), &clientId) == ERROR_ok) {
+            uint64 channelId = INVALID_TS3_CHANNEL;
+            uint64 currentChannelId = INVALID_TS3_CHANNEL;
+            if (ts3Functions.getChannelOfClient(ts3Functions.getCurrentServerConnectionHandlerID(), clientId, &currentChannelId) == ERROR_ok) {
+                channelId = getPreviousTSChannel();
+                if (channelId != INVALID_TS3_CHANNEL && channelId != currentChannelId) {
+                    ts3Functions.requestClientMove(ts3Functions.getCurrentServerConnectionHandlerID(), clientId, channelId, "", NULL);
+                }
+            }
+        }
+        setPreviousTSChannel(INVALID_TS3_CHANNEL);
+    }
+    return ACRE_OK;
+}
+
+uint64 CTS3Client::findChannelByNames(std::vector<std::string> names) {
+    uint64 *channelList;
+    uint64 channelId = INVALID_TS3_CHANNEL;
+    char* channelName;
+    std::map<uint64, std::string> channelMap;
+    int bestDistance = 40;
+    uint64 bestChannelId = INVALID_TS3_CHANNEL;
+    std::string name = names.at(1);
+
+    if (names.at(0) != "") {
+        name = names.at(0);
+    }
+
+    if (ts3Functions.getChannelList(ts3Functions.getCurrentServerConnectionHandlerID(), &channelList) == ERROR_ok) {
+        while (*channelList) {
+            channelId = *channelList;
+            channelList++;
+            if (ts3Functions.getChannelVariableAsString(ts3Functions.getCurrentServerConnectionHandlerID(), channelId, CHANNEL_NAME, &channelName) == ERROR_ok) {
+                std::string channelNameString = std::string(channelName);
+                if (channelNameString.find(DEFAULT_TS3_CHANNEL) != -1) {
+                    if (channelNameString != DEFAULT_TS3_CHANNEL) {
+                        removeSubstrings(channelNameString, DEFAULT_TS3_CHANNEL);
+                    }
+                    channelMap.emplace(channelId, channelNameString);
+                }
+            }
+        }
+
+        for (auto& element : channelMap) {
+            std::string channelName = element.second;
+            int distance = (levenshteinDistance(channelName, name));
+            if (distance <= bestDistance) {
+                bestDistance = distance;
+                bestChannelId = element.first;
+            }
+        }
+        return bestChannelId;
+    }
+    return INVALID_TS3_CHANNEL;
+}
+
+unsigned int CTS3Client::levenshteinDistance(const std::string& string1, const std::string& string2) {
+    int length1 = string1.size();
+    int length2 = string2.size();
+
+    auto columnStart = (decltype(length1))1;
+
+    auto column = new decltype(length1)[length1 + 1];
+    std::iota(column + columnStart, column + length1 + 1, columnStart);
+
+    for (auto x = columnStart; x <= length2; x++) {
+        column[0] = x;
+        auto lastDiagonal = x - columnStart;
+        for (auto y = columnStart; y <= length1; y++) {
+            auto oldDiagonal = column[y];
+            auto possibilities = {
+                column[y] + 1,
+                column[y - 1] + 1,
+                lastDiagonal + (string1[y - 1] == string2[x - 1] ? 0 : 1)
+            };
+            column[y] = std::min(possibilities);
+            lastDiagonal = oldDiagonal;
+        }
+    }
+    auto result = column[length1];
+    delete[] column;
+    return result;
+}
+
+void CTS3Client::removeSubstrings(std::string& string, std::string substring) {
+    std::string::size_type substringLength = substring.length();
+    for (std::string::size_type iterator = string.find(substring);
+        iterator != std::string::npos;
+        iterator = string.find(substring))
+        string.erase(iterator, substringLength);
+}
+
+ACRE_RESULT CTS3Client::updateTs3ChannelNames(std::vector<std::string> names) {
+    setTs3ChannelNames(names);
+    if (!names.empty()) {
+        updateShouldSwitchTS3Channel(true);
+    }
+    return ACRE_OK;
+}
+
+ACRE_RESULT CTS3Client::updateShouldSwitchTS3Channel(BOOL state) {
+    setShouldSwitchTS3Channel(state);
+    return ACRE_OK;
+}
+
+BOOL CTS3Client::shouldSwitchTS3Channel() {
+    return getShouldSwitchTS3Channel();
 }

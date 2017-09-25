@@ -57,8 +57,28 @@ entries:
       url: /wiki/user/direct-speech
       output: web, pdf
 
+    - title: Babel
+      url: /wiki/user/babel
+      output: web, pdf
+
+    - title: External Radios
+      url: /wiki/user/external-radios
+      output: web, pdf
+
+    - title: Vehicle Intercom
+      url: /wiki/user/vehicle-intercom
+      output: web, pdf
+
+    - title: Vehicle Racks
+      url: /wiki/user/vehicle-racks
+      output: web, pdf
+
     - title: Radio Signal Loss
       url: /wiki/user/radio-signal-loss
+      output: web, pdf
+
+    - title: TeamSpeak Channel Switching
+      url: /wiki/user/ts-channel-switching
       output: web, pdf
 
     - title: Class Names
@@ -97,6 +117,10 @@ entries:
       url: /wiki/radios/sem-52-sl
       output: web, pdf
 
+    - title: SEM 70
+      url: /wiki/radios/sem-70
+      output: web, pdf
+
   - title: API / Frameworks
     output: web, pdf
     folderitems:
@@ -117,8 +141,20 @@ entries:
       url: /wiki/frameworks/mission-making-guide
       output: web, pdf
 
+    - title: Babel
+      url: /wiki/frameworks/babel
+      output: web, pdf
+
     - title: Vehicle Attenuation
       url: /wiki/frameworks/vehicle-attenuation
+      output: web, pdf
+
+    - title: Vehicle Intercom
+      url: /wiki/frameworks/vehicle-intercom
+      output: web, pdf
+
+    - title: Vehicle Racks
+      url: /wiki/frameworks/vehicle-racks
       output: web, pdf
 
     - title: Component System
@@ -127,6 +163,10 @@ entries:
 
     - title: Creating New Radio
       url: /wiki/frameworks/creating-new-radio
+      output: web, pdf
+
+    - title: Adding New Antenna
+      url: /wiki/frameworks/adding-new-antenna
       output: web, pdf
 
     - title: Radio Signal Debugging

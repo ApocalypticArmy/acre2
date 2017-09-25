@@ -16,10 +16,11 @@ class CfgAcreComponents {
 
         connectors[] = { 
             {"Antenna", ACRE_CONNECTOR_TNC},
-            {"Audio/Data", ACRE_CONNECTOR_U_283}
+            {"Audio/Data", ACRE_CONNECTOR_U_283},
+            {"Side", ACRE_CONNECTOR_CONN_32PIN}
         };
         defaultComponents[] = {
-            {0, "ACRE_120CM_VHF_TNC"}
+            {0, "ACRE_100CM_VHF_TNC"}
         };
 
         class InterfaceClasses {

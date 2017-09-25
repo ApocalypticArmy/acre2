@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "IClient.h"
 #include "TsFunctions.h"
 #include <thread>
 #include <string>
+#include <vector>
 
 class CTS3Client: public IClient {
 public:
@@ -46,6 +47,15 @@ public:
 
     ACRE_RESULT unMuteAll( void );
 
+    ACRE_RESULT moveToServerTS3Channel();
+    ACRE_RESULT moveToPreviousTS3Channel();
+    uint64 findChannelByNames(std::vector<std::string> names);
+    unsigned int levenshteinDistance(const std::string& string1, const std::string& string2);
+    void removeSubstrings(std::string& string, std::string substring);
+    ACRE_RESULT updateTs3ChannelNames(std::vector<std::string> names);
+    ACRE_RESULT updateShouldSwitchTS3Channel(BOOL state);
+    BOOL shouldSwitchTS3Channel();
+
     DECLARE_MEMBER(BOOL, hadVAD);
     DECLARE_MEMBER(BOOL, InputActive);
     DECLARE_MEMBER(ACRE_STATE, State);
@@ -56,7 +66,10 @@ public:
     DECLARE_MEMBER(BOOL, DirectFirst);
     DECLARE_MEMBER(BOOL, HitTSSpeakingEvent);
     DECLARE_MEMBER(BOOL, IsX3DInitialized);
-    DECLARE_MEMBER(UINT32, SpeakerMask)
+    DECLARE_MEMBER(UINT32, SpeakerMask);
+    DECLARE_MEMBER(uint64, PreviousTSChannel);
+    DECLARE_MEMBER(std::vector<std::string>, Ts3ChannelNames);
+    DECLARE_MEMBER(BOOL, ShouldSwitchTS3Channel)
 protected:
     std::thread m_versionThreadHandle;
     char *m_vadLevel;
